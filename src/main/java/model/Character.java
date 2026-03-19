@@ -1,8 +1,6 @@
 package model;
 
 import model.Item.InventoryItem;
-
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -300,7 +298,7 @@ public class Character {
     private String ideals;
     private String bonds;
     private String flaws;
-    private BufferedImage portrait = null;
+    private String portraitPath = null;
 
     public String getBackground() { return background; }
     public void setBackground(String background) { this.background = background; }
@@ -314,9 +312,8 @@ public class Character {
     public void setBonds(String bonds) { this.bonds = bonds; }
     public String getFlaws() { return flaws; }
     public void setFlaws(String flaws) { this.flaws = flaws; }
-    public BufferedImage getPortrait() { return portrait; }
-    public void setPortrait(BufferedImage portrait) { this.portrait = portrait; }
-
+    public String getPortraitPath() { return portraitPath; }
+    public void setPortraitPath(String portraitPath) { this.portraitPath = portraitPath; }
     /*----------------------------------------Constructor-------------------------------------------------*/
 
     public Character(String name, String race,String className, int level, String background, Dice hitDie) {
