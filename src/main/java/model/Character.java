@@ -37,6 +37,8 @@ public class Character {
 
 
     private Dice hitDie;
+    private int hitDiceSpent = 0;
+    private int hitDiceTotal = 0;
 
     private int deathSaveMiss = 0;
     private int deathSaveSuccesses = 0;
@@ -70,6 +72,10 @@ public class Character {
     public void setTempHitPoints(int tempHitPoints){this.tempHitPoints = tempHitPoints;}
     public Dice getHitDie(){return this.hitDie;}
     public void setHitDie (Dice newDice){this.hitDie = newDice;}
+    public int getHitDiceSpent(){return hitDiceSpent;}
+    public void setHitDiceSpent(int hitDiceSpent){this.hitDiceSpent = hitDiceSpent;}
+    public int getHitDiceTotal(){return hitDiceTotal;}
+    public void setHitDiceTotal(int hitDiceTotal){this.hitDiceTotal = hitDiceTotal;}
     public int getDeathSaveMiss(){return deathSaveMiss;}
     public void setDeathSaveMiss(int deathSaveMiss){this.deathSaveMiss = deathSaveMiss;}
     public int getDeathSaveSuccesses(){return deathSaveSuccesses;}
@@ -265,7 +271,14 @@ public class Character {
     private int electrumCoins = 0;
     private int goldCoins = 0;
     private int platinumCoins = 0;
+    private List<String> attunedItems = new ArrayList<>(); // max 3 Entrys
+    public List<String> getAttunedItems() { return attunedItems; }
 
+    public void attune(String itemName) {
+        if (attunedItems.size() < 3)
+            attunedItems.add(itemName);
+    }
+    public void unattune(String itemName) {attunedItems.remove(itemName);}
     public List<InventoryItem> getInventory() { return inventory; }
     public void addItem(InventoryItem item) { inventory.add(item); }
     public void removeItem(String name) { inventory.removeIf(i -> i.getName().equals(name)); }
