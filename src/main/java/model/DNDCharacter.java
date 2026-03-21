@@ -4,7 +4,7 @@ import model.Item.InventoryItem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Character {
+public class DNDCharacter {
 
     /*----------------------------------------Header Information-------------------------------------------------*/
 
@@ -20,6 +20,8 @@ public class Character {
         public void levelUp(){
             level++;
         }
+        public String getName(){return name;}
+        public int getLevel(){return level;}
     }
     private ArrayList<Class> classes = new ArrayList<>();
     private ArrayList<Class> subClasses = new ArrayList<>();
@@ -116,7 +118,7 @@ public class Character {
     public void setCharisma(int charisma){this.charisma = charisma;}
 
     /*-------------------------------------Proficiencies-------------------------------------------------*/
-    static class Proficiency {
+    public static class Proficiency {
         String name;
         boolean proficient;
         boolean expertise;
@@ -130,6 +132,9 @@ public class Character {
         public void disableProficiency()                { this.proficient = false; }
         public void setExpertise(boolean expertise)     { this.expertise = expertise; }
         public void disableExpertise()                  { this.expertise = false; }
+        public boolean isProficient()                  { return proficient; }
+        public boolean isExpertise()                    { return expertise; }
+        public String getName()                        { return name; }
     }
 
     private Proficiency[] strengthProficiencies     = { new Proficiency("STR Saving Throw"), new Proficiency("Athletics") };
@@ -316,7 +321,7 @@ public class Character {
     public void setPortraitPath(String portraitPath) { this.portraitPath = portraitPath; }
     /*----------------------------------------Constructor-------------------------------------------------*/
 
-    public Character(String name, String race,String className, int level, String background, Dice hitDie) {
+    public DNDCharacter(String name, String race, String className, int level, String background, Dice hitDie) {
         this.name = name;
         this.race = race;
         if(level > 0 && level <= 20)
