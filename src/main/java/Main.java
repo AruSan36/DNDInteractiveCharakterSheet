@@ -50,8 +50,8 @@ public class Main extends Application {
         AnimationTimer loop = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                update(now);
-                render(now);
+                update();
+                render();
             }
         };
         loop.start();
@@ -88,13 +88,14 @@ public class Main extends Application {
         return c;
     }
 
-    private void update(long now) { }
+    private void update() {
+    }
 
-    private void render(long now) {
+    private void render() {
         gc.clearRect(0, 0, W, H);
         // Background 4x skaliert
         gc.drawImage(AssetManager.get("background"), 0, 0, W, H);
-        SheetRenderer.render(gc, character, now);
+        SheetRenderer.render(gc, character);
         InputManager.reset();
     }
 

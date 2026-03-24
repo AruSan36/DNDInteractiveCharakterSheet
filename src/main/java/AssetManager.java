@@ -20,9 +20,9 @@ public class AssetManager {
     public static void loadAll() {
 
         // ── Fonts ──
-        pixellariSmall  = Font.loadFont("file:resources/Pixellari.ttf",  8);
-        pixellariMedium = Font.loadFont("file:resources/Pixellari.ttf", 12);
-        pixellariLarge  = Font.loadFont("file:resources/Pixellari.ttf", 16);
+        pixellariSmall  = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"),  8);
+        pixellariMedium = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"), 12);
+        pixellariLarge  = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"), 16);
         if (pixellariSmall == null)
             System.err.println("FEHLER: Pixellari.ttf nicht gefunden!");
 
@@ -102,12 +102,12 @@ public class AssetManager {
     }
 
     // Breite & Höhe direkt abfragen
-    public static double getWidth(String key) {
-        return get(key).getWidth();
+    public static int getWidth(String key) {
+        return (int) get(key).getWidth();
     }
 
-    public static double getHeight(String key) {
-        return get(key).getHeight();
+    public static int getHeight(String key) {
+        return (int) get(key).getHeight();
     }
 
     public static Font getFontSmall()  { return pixellariSmall; }
