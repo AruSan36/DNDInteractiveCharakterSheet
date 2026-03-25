@@ -105,44 +105,148 @@ public class DNDCharacter {
     public int getCharismaModifier()     { return (charisma - 10) / 2; }
 
     public int getStrength(){return strength;}
-    public void setStrength(int strength){this.strength = strength;}
     public int getDexterity(){return dexterity;}
-    public void setDexterity(int dexterity){this.dexterity = dexterity;}
     public int getConstitution(){return constitution;}
-    public void setConstitution(int constitution){this.constitution = constitution;}
     public int getIntelligence(){return intelligence;}
-    public void setIntelligence(int intelligence){this.intelligence = intelligence;}
     public int getWisdom(){return wisdom;}
-    public void setWisdom(int wisdom){this.wisdom = wisdom;}
     public int getCharisma(){return charisma;}
-    public void setCharisma(int charisma){this.charisma = charisma;}
+
+    public void setStrength(int strength) {
+        this.strength = strength;
+        for (Proficiency p : strengthProficiencies) calcBonus(p);
+    }
+    public void setDexterity(int dexterity) {
+        this.dexterity = dexterity;
+        for (Proficiency p : dexterityProficiencies) calcBonus(p);
+    }
+    public void setConstitution(int constitution) {
+        this.constitution = constitution;
+        for (Proficiency p : constitutionProficiencies) calcBonus(p);
+    }
+    public void setIntelligence(int intelligence) {
+        this.intelligence = intelligence;
+        for (Proficiency p : intelligenceProficiencies) calcBonus(p);
+    }
+    public void setWisdom(int wisdom) {
+        this.wisdom = wisdom;
+        for (Proficiency p : wisdomProficiencies) calcBonus(p);
+    }
+    public void setCharisma(int charisma) {
+        this.charisma = charisma;
+        for (Proficiency p : charismaProficiencies) calcBonus(p);
+    }
 
     /*-------------------------------------Proficiencies-------------------------------------------------*/
+
+    private int proficiencyBonus = 0;
+    public int getProficiencyBonus() { return proficiencyBonus; }
+    public void setProficiencyBonus(int proficiencyBonus) {
+        this.proficiencyBonus = proficiencyBonus;
+        recalcAllProficiencies();  // ← alle neu
+    }
+
+    private void recalcAllProficiencies() {
+        for (Proficiency p : strengthProficiencies)     calcBonus(p);
+        for (Proficiency p : dexterityProficiencies)    calcBonus(p);
+        for (Proficiency p : constitutionProficiencies) calcBonus(p);
+        for (Proficiency p : intelligenceProficiencies) calcBonus(p);
+        for (Proficiency p : wisdomProficiencies)       calcBonus(p);
+        for (Proficiency p : charismaProficiencies)     calcBonus(p);
+    }
+
+
     public static class Proficiency {
         String name;
+        String category;
         boolean proficient;
         boolean expertise;
+        int bonus;
+        DNDCharacter c;
 
-        public Proficiency(String name) {
+        public Proficiency(String name, String category, DNDCharacter c) {
             this.name = name;
             this.proficient = false;
             this.expertise = false;
+            this.category = category;
+            this.c = c;
+            c.calcBonus(this);
         }
-        public void setProficient(boolean proficient)   { this.proficient = proficient; }
-        public void disableProficiency()                { this.proficient = false; }
-        public void setExpertise(boolean expertise)     { this.expertise = expertise; }
-        public void disableExpertise()                  { this.expertise = false; }
+
+        public void setProficient(boolean proficienct){
+            this.proficient = proficienct;
+            c.calcBonus(this);
+        }
+        public void setExpertise(boolean expertise){
+            if(this.proficient)
+                this.expertise = expertise;
+                c.calcBonus(this);
+        }
         public boolean isProficient()                  { return proficient; }
         public boolean isExpertise()                    { return expertise; }
         public String getName()                        { return name; }
+        public int getCategory()                      { return bonus; }
+        public int getBonus()                         { return bonus;}
     }
 
-    private Proficiency[] strengthProficiencies     = { new Proficiency("STR Saving Throw"), new Proficiency("Athletics") };
-    private Proficiency[] dexterityProficiencies    = { new Proficiency("DEX Saving Throw"), new Proficiency("Acrobatics"), new Proficiency("Stealth"), new Proficiency("Sleight of Hand") };
-    private Proficiency[] constitutionProficiencies = { new Proficiency("CON Saving Throw") };
-    private Proficiency[] intelligenceProficiencies = { new Proficiency("INT Saving Throw"), new Proficiency("Arcana"), new Proficiency("History"), new Proficiency("Investigation"), new Proficiency("Nature"), new Proficiency("Religion") };
-    private Proficiency[] wisdomProficiencies       = { new Proficiency("WIS Saving Throw"), new Proficiency("Animal Handling"), new Proficiency("Insight"), new Proficiency("Medicine"), new Proficiency("Perception"), new Proficiency("Survival") };
-    private Proficiency[] charismaProficiencies     = { new Proficiency("CHA Saving Throw"), new Proficiency("Deception"), new Proficiency("Intimidation"), new Proficiency("Performance"), new Proficiency("Persuasion") };
+    private void calcBonus(Proficiency proficiency){
+        switch (proficiency.category) {
+            case "STR"-> {
+                if(proficiency.isExpertise())
+                    proficiency.bonus = getStrengthModifier() + proficiencyBonus *2;
+                else if(proficiency.isProficient())
+                    proficiency.bonus = getStrengthModifier() + proficiencyBonus;
+                else
+                    proficiency.bonus = getStrengthModifier();
+            }
+            case "DEX"-> {
+                if(proficiency.isExpertise())
+                    proficiency.bonus = getDexterityModifier() + proficiencyBonus *2;
+                else if(proficiency.isProficient())
+                    proficiency.bonus = getDexterityModifier() + proficiencyBonus;
+                else
+                    proficiency.bonus = getDexterityModifier();
+            }
+            case "CON"-> {
+                if(proficiency.isExpertise())
+                    proficiency.bonus = getConstitutionModifier() + proficiencyBonus *2;
+                else if(proficiency.isProficient())
+                    proficiency.bonus = getConstitutionModifier() + proficiencyBonus;
+                else
+                    proficiency.bonus = getConstitutionModifier();
+            }
+            case "INT"-> {
+                if(proficiency.isExpertise())
+                    proficiency.bonus = getIntelligenceModifier() + proficiencyBonus *2;
+                else if(proficiency.isProficient())
+                    proficiency.bonus = getIntelligenceModifier() + proficiencyBonus;
+                else
+                    proficiency.bonus = getIntelligenceModifier();
+            }
+            case "WIS"-> {
+                if(proficiency.isExpertise())
+                    proficiency.bonus = getWisdomModifier() + proficiencyBonus *2;
+                else if(proficiency.isProficient())
+                    proficiency.bonus = getWisdomModifier() + proficiencyBonus;
+                else
+                    proficiency.bonus = getWisdomModifier();
+            }
+            case "CHA"-> {
+                if(proficiency.isExpertise())
+                    proficiency.bonus = getCharismaModifier() + proficiencyBonus *2;
+                else if(proficiency.isProficient())
+                    proficiency.bonus = getCharismaModifier() + proficiencyBonus;
+                else
+                    proficiency.bonus = getCharismaModifier();
+            }
+        }
+    }
+
+    private Proficiency[] strengthProficiencies     = { new Proficiency("STR ST" , "STR", this), new Proficiency("Athletics", "STR", this) };
+    private Proficiency[] dexterityProficiencies    = { new Proficiency("DEX ST", "DEX", this), new Proficiency("Acrobatics","DEX", this), new Proficiency("Stealth","DEX", this), new Proficiency("Sleight of Hand","DEX", this) };
+    private Proficiency[] constitutionProficiencies = { new Proficiency("CON ST" ,"CON", this) };
+    private Proficiency[] intelligenceProficiencies = { new Proficiency("INT ST","INT", this), new Proficiency("Arcana","INT", this), new Proficiency("History","INT", this), new Proficiency("Investigation","INT", this), new Proficiency("Nature","INT", this), new Proficiency("Religion","INT", this) };
+    private Proficiency[] wisdomProficiencies       = { new Proficiency("WIS ST", "WIS", this), new Proficiency("Animal Handling", "WIS", this), new Proficiency("Insight", "WIS", this), new Proficiency("Medicine", "WIS", this), new Proficiency("Perception", "WIS", this), new Proficiency("Survival", "WIS", this) };
+    private Proficiency[] charismaProficiencies     = { new Proficiency("CHA ST","CHA", this), new Proficiency("Deception","CHA", this), new Proficiency("Intimidation","CHA", this), new Proficiency("Performance","CHA", this), new Proficiency("Persuasion","CHA", this) };
 
     private List<Proficiency> weaponProficiencies = new ArrayList<>();
     private List<Proficiency> armorProficiencies = new ArrayList<>();
@@ -154,13 +258,13 @@ public class DNDCharacter {
     public boolean isHeroicInspiration() { return heroicInspiration; }
     public void setHeroicInspiration(boolean heroicInspiration) { this.heroicInspiration = heroicInspiration; }
     public List<Proficiency> getWeaponProficiencies() { return weaponProficiencies; }
-    public void addWeaponProficiency(String name) { weaponProficiencies.add(new Proficiency(name)); }
+    public void addWeaponProficiency(String name) { weaponProficiencies.add(new Proficiency(name, "WEAP", this)); }
     public void removeWeaponProficiency(String name) { weaponProficiencies.removeIf(p -> p.name.equals(name)); }
     public List<Proficiency> getArmorProficiencies() { return armorProficiencies; }
-    public void addArmorProficiency(String name) { armorProficiencies.add(new Proficiency(name)); }
+    public void addArmorProficiency(String name) { armorProficiencies.add(new Proficiency(name, "ARM", this)); }
     public void removeArmorProficiency(String name) { armorProficiencies.removeIf(p -> p.name.equals(name)); }
     public List<Proficiency> getToolProficiencies() { return toolProficiencies; }
-    public void addToolProficiency(String name) { toolProficiencies.add(new Proficiency(name)); }
+    public void addToolProficiency(String name) { toolProficiencies.add(new Proficiency(name, "TOOL", this)); }
     public void removeToolProficiency(String name) { toolProficiencies.removeIf(p -> p.name.equals(name)); }
     public List<String> getLanguages() { return languages; }
     public void addLanguage(String language) { languages.add(language); }
@@ -171,6 +275,20 @@ public class DNDCharacter {
     public Proficiency[] getIntelligenceProficiencies() { return intelligenceProficiencies; }
     public Proficiency[] getWisdomProficiencies()       { return wisdomProficiencies; }
     public Proficiency[] getCharismaProficiencies()     { return charismaProficiencies; }
+
+    public void setStrengthProficiency(int index, boolean proficient) { strengthProficiencies[index].setProficient(proficient); }
+    public void setDexterityProficiency(int index, boolean proficient) { dexterityProficiencies[index].setProficient(proficient); }
+    public void setConstitutionProficiency(int index, boolean proficient) { constitutionProficiencies[index].setProficient(proficient); }
+    public void setIntelligenceProficiency(int index, boolean proficient) { intelligenceProficiencies[index].setProficient(proficient); }
+    public void setWisdomProficiency(int index, boolean proficient) { wisdomProficiencies[index].setProficient(proficient); }
+    public void setCharismaProficiency(int index, boolean proficient) { charismaProficiencies[index].setProficient(proficient); }
+
+    public void setCharismaExpertise(int index, boolean expertise) { charismaProficiencies[index].setExpertise(expertise); }
+    public void setWisdomExpertise(int index, boolean expertise) { wisdomProficiencies[index].setExpertise(expertise); }
+    public void setIntelligenceExpertise(int index, boolean expertise) { intelligenceProficiencies[index].setExpertise(expertise); }
+    public void setConstitutionExpertise(int index, boolean expertise) { constitutionProficiencies[index].setExpertise(expertise); }
+    public void setDexterityExpertise(int index, boolean expertise) { dexterityProficiencies[index].setExpertise(expertise); }
+    public void setStrengthExpertise(int index, boolean expertise) { strengthProficiencies[index].setExpertise(expertise); }
 
     /*----------------------------------------Features--------------------------------------------------*/
 

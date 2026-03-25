@@ -85,6 +85,9 @@ public class Main extends Application {
         c.setIntelligence(10);
         c.setWisdom(13);
         c.setCharisma(8);
+        c.setProficiencyBonus(2);
+        c.setIntelligenceProficiency(0, true);
+        c.setIntelligenceExpertise(1, true);
         return c;
     }
 

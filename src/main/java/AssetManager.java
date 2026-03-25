@@ -12,6 +12,7 @@ public class AssetManager {
     private static Font pixellariSmall;
     private static Font pixellariMedium;
     private static Font pixellariLarge;
+    private static Font pixellariExtraLarge;
 
     // ═════════════════════════════════════════════════
     //  Laden – einmal beim Start aufrufen!
@@ -23,6 +24,7 @@ public class AssetManager {
         pixellariSmall  = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"),  8);
         pixellariMedium = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"), 12);
         pixellariLarge  = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"), 16);
+        pixellariExtraLarge = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"), 32);
         if (pixellariSmall == null)
             System.err.println("FEHLER: Pixellari.ttf nicht gefunden!");
 
@@ -57,8 +59,6 @@ public class AssetManager {
         // ── Stat Field ──
         load("statTop",       "StatField/StatFieldTop.png");
         load("statBottom",    "StatField/StatFieldBottom.png");
-        load("statModifier",  "StatField/StatFieldModifier.png");
-        load("statNum",       "StatField/StatFiledStatNum.png");
         load("profRow",       "StatField/StatFieldProficiencyDisplay.png");
         load("profRowFilled", "StatField/StatFieldProficiencyDisplayProficient.png");
         load("expertise",     "StatField/StatFieldExpertise.png");
@@ -113,4 +113,5 @@ public class AssetManager {
     public static Font getFontSmall()  { return pixellariSmall; }
     public static Font getFontMedium() { return pixellariMedium; }
     public static Font getFontLarge()  { return pixellariLarge; }
+    public static Font getFontExtraLarge()  { return pixellariExtraLarge; }
 }
