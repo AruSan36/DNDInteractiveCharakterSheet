@@ -1,8 +1,6 @@
 import javafx.scene.canvas.GraphicsContext;
 import model.DNDCharacter;
 
-import static javafx.scene.text.Font.font;
-
 public class SheetRenderer {
 
     private static int activeTab = 0;
@@ -23,245 +21,324 @@ public class SheetRenderer {
     //
     // ═══════════════════════════════════════════════════════════
 
+    // ═══════════════════════════════════════════════════════════
+    //  LAYOUT SYSTEM & SKALIERUNG
+    // ═══════════════════════════════════════════════════════════
 
-    private static int x = 10; //current x coordinate
-    private static int y = 10; // current y coordinate
+    // Die Auflösung, für die das UI ursprünglich konzipiert wurde
+    private static final double BASE_WIDTH = 720.0;
+    private static final double BASE_HEIGHT = 1280.0;
 
+    // Aktuelle Skalierungsfaktoren für das Fenster
+    private static double scaleX = 1.0;
+    private static double scaleY = 1.0;
+    private static double lastFontScale = -1.0;
 
-    private static final int distanceBetwennRows = 10;
-    private static final int OFFSET = 10;
-    //----------------------------------------TAB Constants-------------------------------------
-    private static final int TAB_HEIGHT = Main.H /10;
-    private static final int TAB_WIDTH = Main.W *9/10;
-    private static final double TAB_SCALE_X = 2.5;
-    private static final double TAB_SCALE_Y = 2;
-    private static final int ROW1_Y = 10; // the starting y coordinate of the first row
+    // Interne Asset-Skalierungen (da die Bilder wohl vergrößert werden müssen)
+    private static final double ASSET_SCALE_TAB_X = 2.5;
+    private static final double ASSET_SCALE_TAB_Y = 2.0;
+    private static final double ASSET_SCALE_STATS_X = 3.0;
+    private static final double ASSET_SCALE_STATS_Y = 3.0;
 
-    //----------------------------------------ROW2 Constants-------------------------------------
-    private static final int ROW_2HEIGHT = Main.H /5;
-    private static final int ROW_2WIDTH = Main.W * 8/10;
-    private static final int ROW2_Y= ROW1_Y + TAB_HEIGHT + distanceBetwennRows; // the starting y coordinate of the second row
+    // Globale Layout-Abstände (in Basis-Pixeln)
+    private static final double DISTANCE_BETWEEN_ROWS = 10.0;
+    private static final double BASE_OFFSET = 10.0;
 
-    //----------------------------------------ROW3 Constants-------------------------------------
-    private static final int ROW_3HEIGHT = Main.H /5;
-    private static final int ROW_3WIDTH = Main.W * 8/10;
-    private static final int ROW3_Y= ROW2_Y + ROW_2HEIGHT + distanceBetwennRows; // the starting y coordinate of the third row
+    // Hilfsmethoden, um jeden Wert dynamisch an die Fenstergröße anzupassen
+    private static double sx(double value) { return value * scaleX; }
+    private static double sy(double value) { return value * scaleY; }
 
-    //----------------------------------------STATS Constants-------------------------------------
-    private static final int STATS_HEIGHT = Main.H /2;
-    private static final int STATS_WIDTH = Main.W * 8/10;
-    private static final int STATS_Y= ROW3_Y + ROW_3HEIGHT + distanceBetwennRows; // the starting y coordinate of the stats row
-    private static final double STATS_SCALE_X = 3;
-    private static final double STATS_SCALE_Y = 3;
+    /**
+     * Aktualisiert die Skalierungsfaktoren basierend auf der aktuellen Canvas-Größe.
+     */
+    private static void updateScale(double currentWidth, double currentHeight) {
+        scaleX = currentWidth / BASE_WIDTH;
+        scaleY = currentHeight / BASE_HEIGHT;
 
-    /*
-    * Der haupt Renderer, geht Stück für Stück alle anderen Renderer ab
-    * */
-    public static void render(GraphicsContext gc, DNDCharacter character) {
-       x = 10;
-       y = 10;
-       renderTab(gc);
-       if(activeTab == 0) {
-           renderRow2(gc, character);
-           renderRow3(gc, character);
-           renderStats(gc, character);
-       }
-       handleInput();
+        // Uniforme Skalierung für Schriftarten berechnen
+        double currentFontScale = Math.min(scaleX, scaleY);
 
-    }
-
-    /*
-     * DER RENDERE Für die oberer Tab Reihe
-     * startet bei x = 10 und y = 10
-     * überprüfe manuell ob die Jweiligen Layout verhältnisse eingehalten wurden
-     * */
-    private static void renderTab(GraphicsContext gc) {
-        for(int i = 0; i < 4; i++) {
-            if(AssetManager.getHeight("tabActive") < TAB_HEIGHT || AssetManager.getWidth("tabActive") < TAB_WIDTH) {
-                switch (i) {
-                    case 0 -> gc.fillText("Stats", x + 10, y + 15 + AssetManager.getHeight("tabActive") / TAB_SCALE_Y);
-                    case 1 -> gc.fillText("Inventory", x + 10 , y + 15 + AssetManager.getHeight("tabActive") / TAB_SCALE_Y);
-                    case 2 -> gc.fillText("Spells", x + 10 , y + 15 + AssetManager.getHeight("tabActive") / TAB_SCALE_Y);
-                    case 3 -> gc.fillText("CharacterInfo", x + 10 , y + 15 + AssetManager.getHeight("tabActive") / TAB_SCALE_Y);
-
-                }
-                if (i == activeTab) {
-                    gc.drawImage(AssetManager.get("tabActive"), x, y, AssetManager.getWidth("tabActive") * TAB_SCALE_X, AssetManager.getHeight("tabActive") * TAB_SCALE_Y);
-                    gc.setFont(AssetManager.getFontLarge());
-                    x += (int) (AssetManager.getWidth("tabActive") * TAB_SCALE_X + 10); //Veränderre die X Koordinate um den Tab 10 px neben dem andern zu rendern
-
-                } else {
-                    gc.drawImage(AssetManager.get("tabInactive"), x, y, AssetManager.getWidth("tabInactive") * TAB_SCALE_X, AssetManager.getHeight("tabInactive") * TAB_SCALE_Y);
-                    x += (int) (AssetManager.getWidth("tabInactive") * TAB_SCALE_X + 10);//Veränderre die X Koordinate um den Tab 10 px neben dem andern zu rendern
-                }
-
-            }
+        // Nur updaten, wenn das Fenster seit dem letzten Frame skaliert wurde!
+        if (currentFontScale != lastFontScale) {
+            AssetManager.updateFonts(currentFontScale);
+            lastFontScale = currentFontScale;
         }
-        //die Koordinaten so verändern das der nächste rendere dort anfängt wo er soll
-        x = 10;
-        y += TAB_HEIGHT + distanceBetwennRows;
-
     }
 
-    /*
-    * Rendere für die 2 Reihe
-    * */
-    private static void renderRow2(GraphicsContext gc, DNDCharacter character) {
-        //TODO die Assest hierfür machen das das ganze so noch nicht fertig ist
-        x = 10;
-        y+= ROW_2HEIGHT + distanceBetwennRows;
-    }
+    // ═══════════════════════════════════════════════════════════
+    //  HAUPT-RENDERER
+    // ═══════════════════════════════════════════════════════════
 
-    /*
-    * Renderer für die 3 Reihe
-    * */
-    private static void renderRow3(GraphicsContext gc, DNDCharacter character) {
-        x = 10;
-        y+= ROW_3HEIGHT + distanceBetwennRows;
-    }
+    /**
+     * Der Haupt-Renderer. Hier musst du jetzt die aktuelle Breite und Höhe deines Canvas übergeben.
+     */
+    public static void render(GraphicsContext gc, DNDCharacter character, double canvasWidth, double canvasHeight) {
+        updateScale(canvasWidth, canvasHeight);
 
-    //*
-    // -----------------------------------------------
-    // -----------------------------------------------
-    //  STATS RENDERING UND ALLE HILFSMETHODEN--------
-    // -----------------------------------------------
-    // -----------------------------------------------
-    // */
+        double currentX = sx(BASE_OFFSET);
 
-    /*
-    *Renderer für die Stats Reihe
-    * */
-    private static void renderStats(GraphicsContext gc, DNDCharacter character) {
+        // ROW 1: Tabs (startet ganz oben mit 10px Offset)
+        double tabsY = sy(BASE_OFFSET);
+        renderTabs(gc, currentX, tabsY);
 
-        int saveY = y;
+        if (activeTab == 0) {
+            // ROW 2: startet bei exakt 1/10 der Basis-Höhe (128 skaliert)
+            double row2Y = sy(BASE_HEIGHT * 0.1);
+            renderRow2(gc, character, currentX, row2Y);
 
+            // ROW 3: startet bei exakt 3/10 (1/10 + 1/5) der Basis-Höhe (384 skaliert)
+            double row3Y = sy(BASE_HEIGHT * 0.3);
+            renderRow3(gc, character, currentX, row3Y);
 
-        //x += (int) (AssetManager.getWidth("statTop") * STATS_SCALE_X + 10);
-        //y += (int) (AssetManager.getHeight("statTop") * STATS_SCALE_Y + 10);
-
-        for(int i = 0 ; i < 8; i++){
-            if(i < 2) {
-                drawStatWidget(gc, character ,i);
-            }
-
-
-
+            // ROW 4 (Stats): startet bei exakt der Hälfte der Basis-Höhe (640 skaliert)
+            double statsY = sy(BASE_HEIGHT * 0.5);
+            renderStats(gc, character, currentX, statsY);
         }
 
-    }
-
-    //*
-    // Hilfsmethode für das StatRendering
-    // */
-    private static void drawStatWidget(GraphicsContext gc, DNDCharacter character, int i) {
-
-        int countOfProf = 1; // um später zu verechnen um wie viele Pixel y verschoben werden muss um das nächste Widget zu rendern
-        //Der TOP
-        gc.drawImage(AssetManager.get("statTop"), x, y, AssetManager.getWidth("statTop") * STATS_SCALE_X, AssetManager.getHeight("statTop") * STATS_SCALE_Y);
-
-        //Die Nummern zu dem Stat und der Header
-        int [] statModifierCords = new int[]{(int) (x + (10* STATS_SCALE_X)),(int) (y + (30 * STATS_SCALE_Y))};
-        int [] statCords = new int[]{(int) (x + (27 * STATS_SCALE_X)),(int) (y + (30 * STATS_SCALE_Y))};
-
-        String statNum = "";
-        String statModifier ="";
-
-        int statValue = switch (i) {
-            case 0 -> character.getIntelligence();
-            case 1 -> character.getCharisma();
-            case 2 -> character.getWisdom();
-            case 3 -> character.getStrength();
-            case 4 -> character.getDexterity();
-            case 5 -> character.getConstitution();
-            default -> 0;
-        };
-        int modValue = switch (i) {
-            case 0 -> character.getIntelligenceModifier();
-            case 1 -> character.getCharismaModifier();
-            case 2 -> character.getWisdomModifier();
-            case 3 -> character.getStrengthModifier();
-            case 4 -> character.getDexterityModifier();
-            case 5 -> character.getConstitutionModifier();
-            default -> 0;
-        };
-        statNum      = statValue + "";
-        statModifier = modValue >= 0 ? "+" + modValue : modValue + "";
-
-        gc.setFont(AssetManager.getFontExtraLarge());
-        gc.fillText(statNum, statCords[0], statCords[1]);
-        gc.fillText(statModifier, statModifierCords[0], statModifierCords[1]);
-
-         //hier wird die Proficinecies gezeichnet
-        countOfProf = drawStatProficiencies(gc, character, i, countOfProf);
-
-        y += (int) ((AssetManager.getHeight("statTop") + (AssetManager.getHeight("profRow") * countOfProf)) * STATS_SCALE_Y + 10);
-        gc.drawImage(AssetManager.get("statBottom"), x, y, AssetManager.getWidth("statBottom") * STATS_SCALE_X, AssetManager.getHeight("statBottom") * STATS_SCALE_Y);
-        y += (int) (AssetManager.getHeight("statBottom") * STATS_SCALE_Y + 10);
-    }
-    /*
-    *   Übernimmt das Rendern der Proficiency Zeilen
-    * */
-    private static int drawStatProficiencies(GraphicsContext gc, DNDCharacter character, int i, int countOfProf) {
-        //Array Wird ausgewählt je nach Proficiency
-        DNDCharacter.Proficiency[] profs = switch (i) {
-            case 0 -> character.getIntelligenceProficiencies();
-            case 1 -> character.getWisdomProficiencies();
-            case 2 -> character.getCharismaProficiencies();
-            case 3 -> character.getStrengthProficiencies();
-            case 4 -> character.getDexterityProficiencies();
-            case 5 -> character.getConstitutionProficiencies();
-            default -> new DNDCharacter.Proficiency[0];
-        };
-        //Startpostiionen der Proficiency Zeilen und des Textes der jweiligen Zeilen
-        int sPosProfX   = 9;
-        int sPosProfY   = 42;
-        int sPosProfTxtX = 19;
-        int sPosProfTxtY = 42;
-
-        for (DNDCharacter.Proficiency prof : profs) {
-            String key = prof.isExpertise()  ? "expertise"
-                    : prof.isProficient() ? "profRowFilled"
-                    : "profRow";
-
-            gc.drawImage(AssetManager.get(key),
-                    x + (sPosProfX   * STATS_SCALE_X),
-                    y + (sPosProfY   * STATS_SCALE_Y),
-                    AssetManager.getWidth(key)  * STATS_SCALE_X,
-                    AssetManager.getHeight(key) * STATS_SCALE_Y);
-
-            sPosProfTxtY = drawProfTxt(gc, prof, sPosProfTxtX, sPosProfTxtY);
-            sPosProfY += 10;
-            countOfProf++;
-        }
-
-        return countOfProf;
-    }
-
-    private static int drawProfTxt(GraphicsContext gc, DNDCharacter.Proficiency prof, int sPosProfTxtX, int sPosProfTxtY) {
-        gc.setFont(AssetManager.getFontLarge());
-        gc.fillText(prof.getName(), x + (sPosProfTxtX * STATS_SCALE_X), y + (sPosProfTxtY * STATS_SCALE_Y)+15);
-        gc.fillText(prof.getBonus() > 0 ? "+" + prof.getBonus() : "" + prof.getBonus(), x -50 + (sPosProfTxtX * STATS_SCALE_X), y + (sPosProfTxtY * STATS_SCALE_Y)+15);
-        return sPosProfTxtY+10;
+        handleInput();
 
     }
 
+    // ═══════════════════════════════════════════════════════════
+    //  KOMPONENTEN-RENDERER
+    // ═══════════════════════════════════════════════════════════
 
-    //---------------------------------------------------------------------
-    //---------------Arbeitet stück für Stück alle Inputs ab---------------
-    //---------------------------------------------------------------------
-    private static void handleInput() {
-        int tabImgW = (int) (AssetManager.getWidth("tabActive") * TAB_SCALE_X);
-        int tabImgH = (int) (AssetManager.getHeight("tabActive") * TAB_SCALE_X);
-        int curX    = OFFSET;
+    /**
+     * Rendert die obere Tab-Reihe.
+     * @return Die neue Y-Koordinate unterhalb der Tabs.
+     */
+    private static double renderTabs(GraphicsContext gc, double startX, double startY) {
+        double x = startX;
+        double y = startY;
+
+        double activeW = sx(AssetManager.getWidth("tabActive") * ASSET_SCALE_TAB_X);
+        double activeH = sy(AssetManager.getHeight("tabActive") * ASSET_SCALE_TAB_Y);
+        double inactiveW = sx(AssetManager.getWidth("tabInactive") * ASSET_SCALE_TAB_X);
+        double inactiveH = sy(AssetManager.getHeight("tabInactive") * ASSET_SCALE_TAB_Y);
+
+        String[] tabNames = {"Stats", "Inventory", "Spells", "CharacterInfo"};
 
         for (int i = 0; i < 4; i++) {
-            // War dieser Tab geklickt?
-            if (InputManager.wasClicked(curX, ROW1_Y, tabImgW, tabImgH)) {
-                activeTab = i;   // ← Variable wird getauscht
+            boolean isActive = (i == activeTab);
+            double currentW = isActive ? activeW : inactiveW;
+            double currentH = isActive ? activeH : inactiveH;
+            String key = isActive ? "tabActive" : "tabInactive";
+
+            // Tab-Bild zeichnen
+            gc.drawImage(AssetManager.get(key), x, y, currentW, currentH);
+
+            // Text zeichnen
+            gc.setFont(isActive ? AssetManager.getFontLarge() : AssetManager.getFontMedium()); // Optional: Font anpassen
+
+            // Textkoordinaten skalieren
+            double textX = x + sx(10);
+            double textY = y + sy(15) + (AssetManager.getHeight("tabActive") / ASSET_SCALE_TAB_Y);
+            gc.fillText(tabNames[i], textX, textY);
+
+            // X-Koordinate für den nächsten Tab verschieben
+            x += currentW + sx(10);
+        }
+
+        // Rückgabe der Y-Koordinate für die nächste Zeile
+        return y + activeH + sy(DISTANCE_BETWEEN_ROWS);
+    }
+
+    private static double renderRow2(GraphicsContext gc, DNDCharacter character, double x, double y) {
+        // TODO: Assets implementieren
+        double rowHeight = sy(BASE_HEIGHT / 5);
+        return y + rowHeight + sy(DISTANCE_BETWEEN_ROWS);
+    }
+
+    private static double renderRow3(GraphicsContext gc, DNDCharacter character, double x, double y) {
+        // TODO: Assets implementieren
+        double rowHeight = sy(BASE_HEIGHT / 5);
+        return y + rowHeight + sy(DISTANCE_BETWEEN_ROWS);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  STATS RENDERING
+    // ═══════════════════════════════════════════════════════════
+
+    private static void renderStats(GraphicsContext gc, DNDCharacter character, double startX, double startY) {
+        double currentX = startX;
+        double currentY = startY;
+
+        // Berechne die Breite eines Widgets für den horizontalen Abstand zur nächsten Spalte
+        double widgetWidth = sx(AssetManager.getWidth("statBottom") * ASSET_SCALE_STATS_X);
+        double horizontalSpacing = sx(10); // 10 Pixel Abstand zwischen den Spalten (wie im Original)
+
+        for (int i = 0; i < 6; i++) {
+            // Nach 3 Stats (also bei i == 3) machen wir einen Zeilenumbruch für die untere Reihe
+            if (i == 3) {
+                currentX = startX; // X wieder ganz nach links setzen
+
+                // Y nach unten verschieben für die zweite Reihe.
+                // Wir nehmen als Platzhalter den maximalen Platz, den die Proficiencies brauchen (9 Reihen)
+                double topH = sy(AssetManager.getHeight("statTop") * ASSET_SCALE_STATS_Y);
+                double profH = sy(AssetManager.getHeight("profRow") * 5 * ASSET_SCALE_STATS_Y + 10);
+                double botH = sy(AssetManager.getHeight("statBottom") * ASSET_SCALE_STATS_Y);
+
+                currentY += topH + profH + botH;
             }
-            curX += tabImgW + distanceBetwennRows;
+
+            // Zeichne das aktuelle Widget an (currentX, currentY)
+            drawStatWidget(gc, character, i, currentX, currentY);
+
+            // Verschiebe die X-Koordinate nach rechts für das nächste Widget in derselben Zeile
+            currentX += widgetWidth + horizontalSpacing;
         }
     }
 
+    private static double drawStatWidget(GraphicsContext gc, DNDCharacter character, int i, double x, double startY) {
+        double y = startY;
 
+        // 1. TOP ZEICHNEN
+        double topW = sx(AssetManager.getWidth("statTop") * ASSET_SCALE_STATS_X);
+        double topH = sy(AssetManager.getHeight("statTop") * ASSET_SCALE_STATS_Y);
+        gc.drawImage(AssetManager.get("statTop"), x, y, topW, topH);
+
+        // 2. WERTE ABRUFEN
+        int statValue = getStatValue(character, i);
+        int modValue = getStatModifier(character, i);
+        String statName = getStatName(i);
+        String statNum = String.valueOf(statValue);
+        String statModifier = modValue >= 0 ? "+" + modValue : String.valueOf(modValue);
+
+        // 3. TEXTE ZEICHNEN
+        double numX = x + sx(27 * ASSET_SCALE_STATS_X);
+        double numY = y + sy(30 * ASSET_SCALE_STATS_Y);
+        double modX = x + sx(10 * ASSET_SCALE_STATS_X);
+        double modY = numY;
+
+        gc.setFont(AssetManager.getFontExtraLarge());
+        gc.fillText(statNum, numX, numY);
+        gc.fillText(statModifier, modX, modY);
+
+        gc.setFont(AssetManager.getFontLarge());
+        gc.fillText(statName, x + sx(12 * ASSET_SCALE_STATS_X), y + sy(8 * ASSET_SCALE_STATS_Y));
+
+        // 4. PROFICIENCIES ZEICHNEN
+        DNDCharacter.Proficiency[] profs = getProficiencies(character, i);
+        drawStatProficiencies(gc, profs, x, y);
+
+        // 5. VERBINDUNGSLINIEN ZEICHNEN & Y-KOORDINATE FÜR NÄCHSTES WIDGET BERECHNEN
+        double nextY = y;
+        if (i < 3) {
+            double lineW = sx(AssetManager.getWidth("ConLine4") * ASSET_SCALE_STATS_X);
+            double lineH = sy(AssetManager.getHeight("ConLine4") * ASSET_SCALE_STATS_Y);
+            gc.drawImage(AssetManager.get("ConLine4"), x, y + topH, lineW, lineH);
+            gc.drawImage(AssetManager.get("ConLine4"), x + topW - sx(1 * ASSET_SCALE_STATS_X), y + topH, lineW, lineH);
+            nextY += topH + sy(AssetManager.getHeight("profRow") * 4.5 * ASSET_SCALE_STATS_Y + 10);
+        } else {
+            double lineW = sx(AssetManager.getWidth("ConLine6") * ASSET_SCALE_STATS_X);
+            double lineH = sy(AssetManager.getHeight("ConLine6") * ASSET_SCALE_STATS_Y);
+            gc.drawImage(AssetManager.get("ConLine6"), x, y + topH, lineW, lineH);
+            gc.drawImage(AssetManager.get("ConLine6"), x + topW - sx(1 * ASSET_SCALE_STATS_X), y + topH, lineW, lineH);
+            nextY += topH + sy(AssetManager.getHeight("profRow") * 6.5 * ASSET_SCALE_STATS_Y + 10);
+        }
+
+        // 6. BOTTOM ZEICHNEN
+        double botW = sx(AssetManager.getWidth("statBottom") * ASSET_SCALE_STATS_X);
+        double botH = sy(AssetManager.getHeight("statBottom") * ASSET_SCALE_STATS_Y);
+        gc.drawImage(AssetManager.get("statBottom"), x, nextY, botW, botH);
+
+        return nextY;
+    }
+
+    private static void drawStatProficiencies(GraphicsContext gc, DNDCharacter.Proficiency[] profs, double baseX, double baseY) {
+        double sPosProfX = sx(9 * ASSET_SCALE_STATS_X);
+        double sPosProfY = sy(42 * ASSET_SCALE_STATS_Y);
+        double sPosProfTxtX = sx(19 * ASSET_SCALE_STATS_X);
+        double sPosProfTxtY = sy(42 * ASSET_SCALE_STATS_Y);
+
+        gc.setFont(AssetManager.getFontLarge());
+
+        for (DNDCharacter.Proficiency prof : profs) {
+            String key = prof.isExpertise() ? "expertise" : prof.isProficient() ? "profRowFilled" : "profRow";
+
+            double imgW = sx(AssetManager.getWidth(key) * ASSET_SCALE_STATS_X);
+            double imgH = sy(AssetManager.getHeight(key) * ASSET_SCALE_STATS_Y);
+
+            gc.drawImage(AssetManager.get(key), baseX + sPosProfX, baseY + sPosProfY, imgW, imgH);
+
+            // Text zeichnen
+            String bonusTxt = (prof.getBonus() > 0 ? "+" : "") + prof.getBonus();
+            gc.fillText(prof.getName(), baseX + sPosProfTxtX, baseY + sPosProfTxtY + sy(15));
+            gc.fillText(bonusTxt, baseX + sPosProfTxtX - sx(50), baseY + sPosProfTxtY + sy(15));
+
+            sPosProfY += sy(30);
+            sPosProfTxtY += sy(30);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  INPUT HANDLING
+    // ═══════════════════════════════════════════════════════════
+
+    private static void handleInput() {
+        double tabImgW = sx(AssetManager.getWidth("tabActive") * ASSET_SCALE_TAB_X);
+        double tabImgH = sy(AssetManager.getHeight("tabActive") * ASSET_SCALE_TAB_Y); // BUGFIX: Hier war vorher TAB_SCALE_X
+        double curX = sx(BASE_OFFSET);
+        double startY = sy(BASE_OFFSET);
+
+        for (int i = 0; i < 4; i++) {
+            // Die Koordinaten müssen wieder auf Integer gecastet werden, falls InputManager int erwartet
+            if (InputManager.wasClicked((int)curX, (int)startY, (int)tabImgW, (int)tabImgH)) {
+                activeTab = i;
+            }
+            curX += tabImgW + sx(DISTANCE_BETWEEN_ROWS);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  HILFSMETHODEN FÜR DATENABRUF
+    // ═══════════════════════════════════════════════════════════
+
+    private static int getStatValue(DNDCharacter character, int i) {
+        return switch (i) {
+            case 0 -> character.getConstitution();
+            case 1 -> character.getStrength();
+            case 2 -> character.getDexterity();
+            case 3 -> character.getWisdom();
+            case 4 -> character.getIntelligence();
+            case 5 -> character.getCharisma();
+            default -> 0;
+        };
+    }
+
+    private static int getStatModifier(DNDCharacter character, int i) {
+        return switch (i) {
+            case 0 -> character.getConstitutionModifier();
+            case 1 -> character.getStrengthModifier();
+            case 2 -> character.getDexterityModifier();
+            case 3 -> character.getWisdomModifier();
+            case 4 -> character.getIntelligenceModifier();
+            case 5 -> character.getCharismaModifier();
+            default -> 0;
+        };
+    }
+
+    private static String getStatName(int i) {
+        return switch (i) {
+            case 0 -> "Constitution";
+            case 1 -> "Strength";
+            case 2 -> "Dexterity";
+            case 3 -> "Wisdom";
+            case 4 -> "Intelligence";
+            case 5 -> "Charisma";
+            default -> "";
+        };
+    }
+
+    private static DNDCharacter.Proficiency[] getProficiencies(DNDCharacter character, int i) {
+        return switch (i) {
+            case 0 -> character.getConstitutionProficiencies();
+            case 1 -> character.getStrengthProficiencies();
+            case 2 -> character.getDexterityProficiencies();
+            case 3 -> character.getWisdomProficiencies();
+            case 4 -> character.getIntelligenceProficiencies();
+            case 5 -> character.getCharismaProficiencies();
+            default -> new DNDCharacter.Proficiency[0];
+        };
+    }
 }

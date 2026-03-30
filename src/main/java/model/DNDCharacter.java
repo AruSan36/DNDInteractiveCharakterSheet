@@ -242,11 +242,11 @@ public class DNDCharacter {
     }
 
     private Proficiency[] strengthProficiencies     = { new Proficiency("STR ST" , "STR", this), new Proficiency("Athletics", "STR", this) };
-    private Proficiency[] dexterityProficiencies    = { new Proficiency("DEX ST", "DEX", this), new Proficiency("Acrobatics","DEX", this), new Proficiency("Stealth","DEX", this), new Proficiency("Sleight of Hand","DEX", this) };
+    private Proficiency[] dexterityProficiencies    = { new Proficiency("DEX ST", "DEX", this), new Proficiency("Acrobatics","DEX", this), new Proficiency("Stealth","DEX", this), new Proficiency("Sleight OH","DEX", this) };
     private Proficiency[] constitutionProficiencies = { new Proficiency("CON ST" ,"CON", this) };
-    private Proficiency[] intelligenceProficiencies = { new Proficiency("INT ST","INT", this), new Proficiency("Arcana","INT", this), new Proficiency("History","INT", this), new Proficiency("Investigation","INT", this), new Proficiency("Nature","INT", this), new Proficiency("Religion","INT", this) };
-    private Proficiency[] wisdomProficiencies       = { new Proficiency("WIS ST", "WIS", this), new Proficiency("Animal Handling", "WIS", this), new Proficiency("Insight", "WIS", this), new Proficiency("Medicine", "WIS", this), new Proficiency("Perception", "WIS", this), new Proficiency("Survival", "WIS", this) };
-    private Proficiency[] charismaProficiencies     = { new Proficiency("CHA ST","CHA", this), new Proficiency("Deception","CHA", this), new Proficiency("Intimidation","CHA", this), new Proficiency("Performance","CHA", this), new Proficiency("Persuasion","CHA", this) };
+    private Proficiency[] intelligenceProficiencies = { new Proficiency("INT ST","INT", this), new Proficiency("Arcana","INT", this), new Proficiency("History","INT", this), new Proficiency("Investigate","INT", this), new Proficiency("Nature","INT", this), new Proficiency("Religion","INT", this) };
+    private Proficiency[] wisdomProficiencies       = { new Proficiency("WIS ST", "WIS", this), new Proficiency("AH", "WIS", this), new Proficiency("Insight", "WIS", this), new Proficiency("Medicine", "WIS", this), new Proficiency("Perception", "WIS", this), new Proficiency("Survival", "WIS", this) };
+    private Proficiency[] charismaProficiencies     = { new Proficiency("CHA ST","CHA", this), new Proficiency("Deception","CHA", this), new Proficiency("Intimidation","CHA", this), new Proficiency("Perf.","CHA", this), new Proficiency("Persuasion","CHA", this) };
 
     private List<Proficiency> weaponProficiencies = new ArrayList<>();
     private List<Proficiency> armorProficiencies = new ArrayList<>();

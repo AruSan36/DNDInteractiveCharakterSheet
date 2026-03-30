@@ -9,10 +9,20 @@ public class AssetManager {
     // HashMap = Wörterbuch: Name → Bild
     // "checkbox" → Image(checkbox.png)
     private static final HashMap<String, Image> assets = new HashMap<>();
+
     private static Font pixellariSmall;
+    private static double smallFontSize = 8;
+
     private static Font pixellariMedium;
+    private static double mediumFontSize = 12;
+
     private static Font pixellariLarge;
+    private static double largeFontSize = 16;
+
     private static Font pixellariExtraLarge;
+    private static double extraLargeFontSize = 32;
+
+    private static String fontFamilyName;
 
     // ═════════════════════════════════════════════════
     //  Laden – einmal beim Start aufrufen!
@@ -21,12 +31,12 @@ public class AssetManager {
     public static void loadAll() {
 
         // ── Fonts ──
-        pixellariSmall  = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"),  8);
-        pixellariMedium = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"), 12);
-        pixellariLarge  = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"), 16);
-        pixellariExtraLarge = Font.loadFont(AssetManager.class.getResourceAsStream("/Pixellari.ttf"), 32);
+        Font baseFont = Font.loadFont(AssetManager.class.getResourceAsStream("Pixellari.ttf"), 10);
+        fontFamilyName = baseFont.getFamily();
         if (pixellariSmall == null)
             System.err.println("FEHLER: Pixellari.ttf nicht gefunden!");
+
+        updateFonts(1.0);
 
         // ── Hintergrund & Panels ──
         load("background",    "backGround.png");
@@ -62,6 +72,8 @@ public class AssetManager {
         load("profRow",       "StatField/StatFieldProficiencyDisplay.png");
         load("profRowFilled", "StatField/StatFieldProficiencyDisplayProficient.png");
         load("expertise",     "StatField/StatFieldExpertise.png");
+        load("ConLine4",      "StatField/ConnectionLine4.png");
+        load("ConLine6",      "StatField/ConnectionLine6.png");
 
         System.out.println("Assets geladen: " + assets.size());
     }
@@ -85,6 +97,14 @@ public class AssetManager {
         } catch (Exception e) {
             System.err.println("FEHLER: " + filename + " → " + e.getMessage());
         }
+    }
+
+    public static void updateFonts(double scale) {
+        // 2. Nutze Font.font(name, size), das greift auf die bereits registrierte Schrift zu (sehr schnell!)
+        pixellariSmall = Font.font(fontFamilyName, smallFontSize * scale);
+        pixellariMedium = Font.font(fontFamilyName, mediumFontSize * scale);
+        pixellariLarge = Font.font(fontFamilyName, largeFontSize * scale);
+        pixellariExtraLarge = Font.font(fontFamilyName, extraLargeFontSize * scale);
     }
 
     // ═════════════════════════════════════════════════
