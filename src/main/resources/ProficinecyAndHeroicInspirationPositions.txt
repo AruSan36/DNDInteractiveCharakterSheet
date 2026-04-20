@@ -1,0 +1,7 @@
+Heroic Inspiration true fals field Position, x19, y17
+
+Heroic Inspiration text pos: x3, y10
+
+Proficinencie Bonus text: x5, y5
+
+Profincinece Bonus num : x15,y13

@@ -1,5 +1,11 @@
+package draw;
+
 import javafx.scene.canvas.GraphicsContext;
 import model.DNDCharacter;
+import ui.StatBlock;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SheetRenderer {
 
@@ -30,15 +36,16 @@ public class SheetRenderer {
     private static final double BASE_HEIGHT = 1280.0;
 
     // Aktuelle Skalierungsfaktoren für das Fenster
-    private static double scaleX = 1.0;
-    private static double scaleY = 1.0;
+    public static double scaleX = 1.0;
+    public static double scaleY = 1.0;
     private static double lastFontScale = -1.0;
 
-    // Interne Asset-Skalierungen (da die Bilder wohl vergrößert werden müssen)
+    // Interne Asset-Skalierungen (da die Bilder vergrößert werden müssen)
     private static final double ASSET_SCALE_TAB_X = 2.5;
     private static final double ASSET_SCALE_TAB_Y = 2.0;
     private static final double ASSET_SCALE_STATS_X = 3.0;
     private static final double ASSET_SCALE_STATS_Y = 3.0;
+
 
     // Globale Layout-Abstände (in Basis-Pixeln)
     private static final double DISTANCE_BETWEEN_ROWS = 10.0;
@@ -47,6 +54,18 @@ public class SheetRenderer {
     // Hilfsmethoden, um jeden Wert dynamisch an die Fenstergröße anzupassen
     private static double sx(double value) { return value * scaleX; }
     private static double sy(double value) { return value * scaleY; }
+
+    private static List<StatBlock> statBlocks = null;
+
+    private static void initWidgets(DNDCharacter character) {
+        statBlocks = new ArrayList<>();
+        statBlocks.add(new StatBlock(0,0, 0, character));  // Position berechnet renderStats selbst
+        statBlocks.add(new StatBlock( 0,0,1, character));
+        statBlocks.add(new StatBlock(0,0,2, character));
+        statBlocks.add(new StatBlock(0,0,3, character));
+        statBlocks.add(new StatBlock(0,0,4, character));
+        statBlocks.add(new StatBlock(0,0,5, character));
+    }
 
     /**
      * Aktualisiert die Skalierungsfaktoren basierend auf der aktuellen Canvas-Größe.
@@ -95,7 +114,7 @@ public class SheetRenderer {
             renderStats(gc, character, currentX, statsY);
         }
 
-        handleInput();
+        //handleInput();
 
     }
 
@@ -163,6 +182,8 @@ public class SheetRenderer {
         double currentX = startX;
         double currentY = startY;
 
+        initWidgets(character);
+
         // Berechne die Breite eines Widgets für den horizontalen Abstand zur nächsten Spalte
         double widgetWidth = sx(AssetManager.getWidth("statBottom") * ASSET_SCALE_STATS_X);
         double horizontalSpacing = sx(10); // 10 Pixel Abstand zwischen den Spalten (wie im Original)
@@ -173,7 +194,7 @@ public class SheetRenderer {
                 currentX = startX; // X wieder ganz nach links setzen
 
                 // Y nach unten verschieben für die zweite Reihe.
-                // Wir nehmen als Platzhalter den maximalen Platz, den die Proficiencies brauchen (9 Reihen)
+                // nehme als Platzhalter den maximalen Platz, den die Proficiencies brauchen (9 Reihen)
                 double topH = sy(AssetManager.getHeight("statTop") * ASSET_SCALE_STATS_Y);
                 double profH = sy(AssetManager.getHeight("profRow") * 5 * ASSET_SCALE_STATS_Y + 10);
                 double botH = sy(AssetManager.getHeight("statBottom") * ASSET_SCALE_STATS_Y);
@@ -181,95 +202,22 @@ public class SheetRenderer {
                 currentY += topH + profH + botH;
             }
 
-            // Zeichne das aktuelle Widget an (currentX, currentY)
-            drawStatWidget(gc, character, i, currentX, currentY);
+            for(StatBlock statBlock : statBlocks) {
+                if(statBlock.getStatIndex() == i) {
+                    statBlock.setX(currentX);
+                    statBlock.setY(currentY);
+                    statBlock.render(gc);
+                }
+            }
 
             // Verschiebe die X-Koordinate nach rechts für das nächste Widget in derselben Zeile
             currentX += widgetWidth + horizontalSpacing;
         }
     }
 
-    private static double drawStatWidget(GraphicsContext gc, DNDCharacter character, int i, double x, double startY) {
-        double y = startY;
 
-        // 1. TOP ZEICHNEN
-        double topW = sx(AssetManager.getWidth("statTop") * ASSET_SCALE_STATS_X);
-        double topH = sy(AssetManager.getHeight("statTop") * ASSET_SCALE_STATS_Y);
-        gc.drawImage(AssetManager.get("statTop"), x, y, topW, topH);
 
-        // 2. WERTE ABRUFEN
-        int statValue = getStatValue(character, i);
-        int modValue = getStatModifier(character, i);
-        String statName = getStatName(i);
-        String statNum = String.valueOf(statValue);
-        String statModifier = modValue >= 0 ? "+" + modValue : String.valueOf(modValue);
 
-        // 3. TEXTE ZEICHNEN
-        double numX = x + sx(27 * ASSET_SCALE_STATS_X);
-        double numY = y + sy(30 * ASSET_SCALE_STATS_Y);
-        double modX = x + sx(10 * ASSET_SCALE_STATS_X);
-        double modY = numY;
-
-        gc.setFont(AssetManager.getFontExtraLarge());
-        gc.fillText(statNum, numX, numY);
-        gc.fillText(statModifier, modX, modY);
-
-        gc.setFont(AssetManager.getFontLarge());
-        gc.fillText(statName, x + sx(12 * ASSET_SCALE_STATS_X), y + sy(8 * ASSET_SCALE_STATS_Y));
-
-        // 4. PROFICIENCIES ZEICHNEN
-        DNDCharacter.Proficiency[] profs = getProficiencies(character, i);
-        drawStatProficiencies(gc, profs, x, y);
-
-        // 5. VERBINDUNGSLINIEN ZEICHNEN & Y-KOORDINATE FÜR NÄCHSTES WIDGET BERECHNEN
-        double nextY = y;
-        if (i < 3) {
-            double lineW = sx(AssetManager.getWidth("ConLine4") * ASSET_SCALE_STATS_X);
-            double lineH = sy(AssetManager.getHeight("ConLine4") * ASSET_SCALE_STATS_Y);
-            gc.drawImage(AssetManager.get("ConLine4"), x, y + topH, lineW, lineH);
-            gc.drawImage(AssetManager.get("ConLine4"), x + topW - sx(1 * ASSET_SCALE_STATS_X), y + topH, lineW, lineH);
-            nextY += topH + sy(AssetManager.getHeight("profRow") * 4.5 * ASSET_SCALE_STATS_Y + 10);
-        } else {
-            double lineW = sx(AssetManager.getWidth("ConLine6") * ASSET_SCALE_STATS_X);
-            double lineH = sy(AssetManager.getHeight("ConLine6") * ASSET_SCALE_STATS_Y);
-            gc.drawImage(AssetManager.get("ConLine6"), x, y + topH, lineW, lineH);
-            gc.drawImage(AssetManager.get("ConLine6"), x + topW - sx(1 * ASSET_SCALE_STATS_X), y + topH, lineW, lineH);
-            nextY += topH + sy(AssetManager.getHeight("profRow") * 6.5 * ASSET_SCALE_STATS_Y + 10);
-        }
-
-        // 6. BOTTOM ZEICHNEN
-        double botW = sx(AssetManager.getWidth("statBottom") * ASSET_SCALE_STATS_X);
-        double botH = sy(AssetManager.getHeight("statBottom") * ASSET_SCALE_STATS_Y);
-        gc.drawImage(AssetManager.get("statBottom"), x, nextY, botW, botH);
-
-        return nextY;
-    }
-
-    private static void drawStatProficiencies(GraphicsContext gc, DNDCharacter.Proficiency[] profs, double baseX, double baseY) {
-        double sPosProfX = sx(9 * ASSET_SCALE_STATS_X);
-        double sPosProfY = sy(42 * ASSET_SCALE_STATS_Y);
-        double sPosProfTxtX = sx(19 * ASSET_SCALE_STATS_X);
-        double sPosProfTxtY = sy(42 * ASSET_SCALE_STATS_Y);
-
-        gc.setFont(AssetManager.getFontLarge());
-
-        for (DNDCharacter.Proficiency prof : profs) {
-            String key = prof.isExpertise() ? "expertise" : prof.isProficient() ? "profRowFilled" : "profRow";
-
-            double imgW = sx(AssetManager.getWidth(key) * ASSET_SCALE_STATS_X);
-            double imgH = sy(AssetManager.getHeight(key) * ASSET_SCALE_STATS_Y);
-
-            gc.drawImage(AssetManager.get(key), baseX + sPosProfX, baseY + sPosProfY, imgW, imgH);
-
-            // Text zeichnen
-            String bonusTxt = (prof.getBonus() > 0 ? "+" : "") + prof.getBonus();
-            gc.fillText(prof.getName(), baseX + sPosProfTxtX, baseY + sPosProfTxtY + sy(15));
-            gc.fillText(bonusTxt, baseX + sPosProfTxtX - sx(50), baseY + sPosProfTxtY + sy(15));
-
-            sPosProfY += sy(30);
-            sPosProfTxtY += sy(30);
-        }
-    }
 
     // ═══════════════════════════════════════════════════════════
     //  INPUT HANDLING
@@ -294,51 +242,5 @@ public class SheetRenderer {
     //  HILFSMETHODEN FÜR DATENABRUF
     // ═══════════════════════════════════════════════════════════
 
-    private static int getStatValue(DNDCharacter character, int i) {
-        return switch (i) {
-            case 0 -> character.getConstitution();
-            case 1 -> character.getStrength();
-            case 2 -> character.getDexterity();
-            case 3 -> character.getWisdom();
-            case 4 -> character.getIntelligence();
-            case 5 -> character.getCharisma();
-            default -> 0;
-        };
-    }
 
-    private static int getStatModifier(DNDCharacter character, int i) {
-        return switch (i) {
-            case 0 -> character.getConstitutionModifier();
-            case 1 -> character.getStrengthModifier();
-            case 2 -> character.getDexterityModifier();
-            case 3 -> character.getWisdomModifier();
-            case 4 -> character.getIntelligenceModifier();
-            case 5 -> character.getCharismaModifier();
-            default -> 0;
-        };
-    }
-
-    private static String getStatName(int i) {
-        return switch (i) {
-            case 0 -> "Constitution";
-            case 1 -> "Strength";
-            case 2 -> "Dexterity";
-            case 3 -> "Wisdom";
-            case 4 -> "Intelligence";
-            case 5 -> "Charisma";
-            default -> "";
-        };
-    }
-
-    private static DNDCharacter.Proficiency[] getProficiencies(DNDCharacter character, int i) {
-        return switch (i) {
-            case 0 -> character.getConstitutionProficiencies();
-            case 1 -> character.getStrengthProficiencies();
-            case 2 -> character.getDexterityProficiencies();
-            case 3 -> character.getWisdomProficiencies();
-            case 4 -> character.getIntelligenceProficiencies();
-            case 5 -> character.getCharismaProficiencies();
-            default -> new DNDCharacter.Proficiency[0];
-        };
-    }
 }

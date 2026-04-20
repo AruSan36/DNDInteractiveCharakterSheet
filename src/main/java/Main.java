@@ -1,11 +1,12 @@
 // Main.java
+import draw.AssetManager;
+import draw.SheetRenderer;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.animation.AnimationTimer;
@@ -107,6 +108,10 @@ public class Main extends Application {
         gc.drawImage(AssetManager.get("background"), 0, 0, currentW, currentH);
         SheetRenderer.render(gc, character,currentW,currentH);
         InputManager.reset();
+    }
+
+    private void initializeWidgets(){
+
     }
 
 }

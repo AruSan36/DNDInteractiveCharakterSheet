@@ -1,6 +1,7 @@
+package draw;
+
 import javafx.scene.image.Image;
 import javafx.scene.text.Font;
-import model.DNDCharacter;
 
 import java.util.HashMap;
 
@@ -29,11 +30,15 @@ public class AssetManager {
     // ═════════════════════════════════════════════════
 
     public static void loadAll() {
-
+        System.out.println(
+                AssetManager.class.getResource("/Pixellari.ttf")
+        );
         // ── Fonts ──
-        Font baseFont = Font.loadFont(AssetManager.class.getResourceAsStream("Pixellari.ttf"), 10);
+        Font baseFont = Font.loadFont(
+                AssetManager.class.getResource("/Pixellari.ttf").toExternalForm(), 10
+        );
         fontFamilyName = baseFont.getFamily();
-        if (pixellariSmall == null)
+        if (baseFont == null)
             System.err.println("FEHLER: Pixellari.ttf nicht gefunden!");
 
         updateFonts(1.0);
