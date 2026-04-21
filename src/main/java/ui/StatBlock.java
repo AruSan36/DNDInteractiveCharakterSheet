@@ -109,7 +109,7 @@ public class StatBlock extends Widget{
 
 
     @Override
-    public void handleInput(double scaleX, double scaleY) {
+    public void handleInput() {
 
     }
 

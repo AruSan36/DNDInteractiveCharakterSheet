@@ -1,15 +1,18 @@
 package draw;
 
+import Input.InputManager;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Tab;
 import model.DNDCharacter;
 import ui.StatBlock;
+import ui.TabBlock;
+
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SheetRenderer {
 
-    private static int activeTab = 0;
 
     // ═══════════════════════════════════════════════════════════
     //  Layout Konstanten  (720 × 1280)
@@ -41,23 +44,24 @@ public class SheetRenderer {
     private static double lastFontScale = -1.0;
 
     // Interne Asset-Skalierungen (da die Bilder vergrößert werden müssen)
-    private static final double ASSET_SCALE_TAB_X = 2.5;
-    private static final double ASSET_SCALE_TAB_Y = 2.0;
-    private static final double ASSET_SCALE_STATS_X = 3.0;
-    private static final double ASSET_SCALE_STATS_Y = 3.0;
+    public static final double ASSET_SCALE_TAB_X = 2.5;
+    public static final double ASSET_SCALE_TAB_Y = 2.0;
+    public static final double ASSET_SCALE_STATS_X = 3.0;
+    public static final double ASSET_SCALE_STATS_Y = 3.0;
 
 
     // Globale Layout-Abstände (in Basis-Pixeln)
-    private static final double DISTANCE_BETWEEN_ROWS = 10.0;
-    private static final double BASE_OFFSET = 10.0;
+    public static final double DISTANCE_BETWEEN_ROWS = 10.0;
+    public static final double BASE_OFFSET = 10.0;
 
     // Hilfsmethoden, um jeden Wert dynamisch an die Fenstergröße anzupassen
     private static double sx(double value) { return value * scaleX; }
     private static double sy(double value) { return value * scaleY; }
 
-    private static List<StatBlock> statBlocks = null;
+    private static List<StatBlock> statBlocks = new ArrayList<>();
+    private static List<TabBlock> tabBlocks = new ArrayList<>();
 
-    private static void initWidgets(DNDCharacter character) {
+    public static void initWidgets(DNDCharacter character) {
         statBlocks = new ArrayList<>();
         statBlocks.add(new StatBlock(0,0, 0, character));  // Position berechnet renderStats selbst
         statBlocks.add(new StatBlock( 0,0,1, character));
@@ -65,7 +69,14 @@ public class SheetRenderer {
         statBlocks.add(new StatBlock(0,0,3, character));
         statBlocks.add(new StatBlock(0,0,4, character));
         statBlocks.add(new StatBlock(0,0,5, character));
+
+        tabBlocks.add(new TabBlock(0,0, "Stats", true));
+        tabBlocks.add(new TabBlock(0,0, "Inventory", false));
+        tabBlocks.add(new TabBlock(0,0, "Spells", false));
+        tabBlocks.add(new TabBlock(0,0, "CharacterInfo", false));
+
     }
+
 
     /**
      * Aktualisiert die Skalierungsfaktoren basierend auf der aktuellen Canvas-Größe.
@@ -93,14 +104,13 @@ public class SheetRenderer {
      */
     public static void render(GraphicsContext gc, DNDCharacter character, double canvasWidth, double canvasHeight) {
         updateScale(canvasWidth, canvasHeight);
-
         double currentX = sx(BASE_OFFSET);
 
         // ROW 1: Tabs (startet ganz oben mit 10px Offset)
         double tabsY = sy(BASE_OFFSET);
         renderTabs(gc, currentX, tabsY);
 
-        if (activeTab == 0) {
+        if (TabBlock.activeTab.equals("Stats")) {
             // ROW 2: startet bei exakt 1/10 der Basis-Höhe (128 skaliert)
             double row2Y = sy(BASE_HEIGHT * 0.1);
             renderRow2(gc, character, currentX, row2Y);
@@ -114,7 +124,7 @@ public class SheetRenderer {
             renderStats(gc, character, currentX, statsY);
         }
 
-        //handleInput();
+        handleInput();
 
     }
 
@@ -126,40 +136,17 @@ public class SheetRenderer {
      * Rendert die obere Tab-Reihe.
      * @return Die neue Y-Koordinate unterhalb der Tabs.
      */
-    private static double renderTabs(GraphicsContext gc, double startX, double startY) {
+    private static void renderTabs(GraphicsContext gc, double startX, double startY) {
+
         double x = startX;
         double y = startY;
 
-        double activeW = sx(AssetManager.getWidth("tabActive") * ASSET_SCALE_TAB_X);
-        double activeH = sy(AssetManager.getHeight("tabActive") * ASSET_SCALE_TAB_Y);
-        double inactiveW = sx(AssetManager.getWidth("tabInactive") * ASSET_SCALE_TAB_X);
-        double inactiveH = sy(AssetManager.getHeight("tabInactive") * ASSET_SCALE_TAB_Y);
-
-        String[] tabNames = {"Stats", "Inventory", "Spells", "CharacterInfo"};
-
-        for (int i = 0; i < 4; i++) {
-            boolean isActive = (i == activeTab);
-            double currentW = isActive ? activeW : inactiveW;
-            double currentH = isActive ? activeH : inactiveH;
-            String key = isActive ? "tabActive" : "tabInactive";
-
-            // Tab-Bild zeichnen
-            gc.drawImage(AssetManager.get(key), x, y, currentW, currentH);
-
-            // Text zeichnen
-            gc.setFont(isActive ? AssetManager.getFontLarge() : AssetManager.getFontMedium()); // Optional: Font anpassen
-
-            // Textkoordinaten skalieren
-            double textX = x + sx(10);
-            double textY = y + sy(15) + (AssetManager.getHeight("tabActive") / ASSET_SCALE_TAB_Y);
-            gc.fillText(tabNames[i], textX, textY);
-
-            // X-Koordinate für den nächsten Tab verschieben
-            x += currentW + sx(10);
+        for(TabBlock tb : tabBlocks){
+            tb.setX(x);
+            tb.setY(y);
+            tb.render(gc);
+            x = tb.getNewX();
         }
-
-        // Rückgabe der Y-Koordinate für die nächste Zeile
-        return y + activeH + sy(DISTANCE_BETWEEN_ROWS);
     }
 
     private static double renderRow2(GraphicsContext gc, DNDCharacter character, double x, double y) {
@@ -182,7 +169,6 @@ public class SheetRenderer {
         double currentX = startX;
         double currentY = startY;
 
-        initWidgets(character);
 
         // Berechne die Breite eines Widgets für den horizontalen Abstand zur nächsten Spalte
         double widgetWidth = sx(AssetManager.getWidth("statBottom") * ASSET_SCALE_STATS_X);
@@ -222,21 +208,26 @@ public class SheetRenderer {
     // ═══════════════════════════════════════════════════════════
     //  INPUT HANDLING
     // ═══════════════════════════════════════════════════════════
-
     private static void handleInput() {
-        double tabImgW = sx(AssetManager.getWidth("tabActive") * ASSET_SCALE_TAB_X);
-        double tabImgH = sy(AssetManager.getHeight("tabActive") * ASSET_SCALE_TAB_Y); // BUGFIX: Hier war vorher TAB_SCALE_X
-        double curX = sx(BASE_OFFSET);
-        double startY = sy(BASE_OFFSET);
 
-        for (int i = 0; i < 4; i++) {
-            // Die Koordinaten müssen wieder auf Integer gecastet werden, falls InputManager int erwartet
-            if (InputManager.wasClicked((int)curX, (int)startY, (int)tabImgW, (int)tabImgH)) {
-                activeTab = i;
-            }
+        //Tabs
+        double curX = sx(BASE_OFFSET);
+        //Input funktioniert nicht und lässt die Stats nicht rendern
+        for (TabBlock tb : tabBlocks) {
+            tb.setInputX(curX);
+            tb.handleInput();
+            double tabImgW = sx(AssetManager.getWidth(tb.getKey()) * ASSET_SCALE_TAB_X);
             curX += tabImgW + sx(DISTANCE_BETWEEN_ROWS);
+            tb.activeTab = tb.getTabName();
+
+            for(TabBlock tt : tabBlocks) {
+                if (!tt.getTabName().equals(tt.activeTab)) {
+                    tt.deactivate();
+                }
+            }
         }
     }
+
 
     // ═══════════════════════════════════════════════════════════
     //  HILFSMETHODEN FÜR DATENABRUF

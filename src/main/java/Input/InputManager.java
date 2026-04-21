@@ -1,3 +1,5 @@
+package Input;
+
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 

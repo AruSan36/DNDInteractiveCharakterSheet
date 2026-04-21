@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 import javafx.animation.AnimationTimer;
 import model.DNDCharacter;
 import model.Dice;
+import Input.InputManager;
 
 import java.io.File;
 import java.util.Optional;
@@ -51,6 +52,8 @@ public class Main extends Application {
         canvas.setOnMouseMoved(e    -> InputManager.mouseMoved(e));
         canvas.setOnMousePressed(e  -> InputManager.mousePressed(e));
         canvas.setOnMouseReleased(e -> InputManager.mouseReleased(e));
+
+        initializeWidgets();
 
         AnimationTimer loop = new AnimationTimer() {
             @Override
@@ -111,6 +114,7 @@ public class Main extends Application {
     }
 
     private void initializeWidgets(){
+        draw.SheetRenderer.initWidgets(character);
 
     }
 

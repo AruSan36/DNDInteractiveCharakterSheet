@@ -17,7 +17,7 @@ public abstract class Widget {
 
     // Jedes Widget MUSS diese zwei Methoden implementieren
     public abstract void render(GraphicsContext gc);
-    public abstract void handleInput(double scaleX, double scaleY);
+    public abstract void handleInput();
 
     // Hilfsmethoden die alle Widgets nutzen können
     protected double sx(double value) { return value * scaleX; }
